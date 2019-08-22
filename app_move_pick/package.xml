@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>app_move_pick</name>
+  <version>0.0.0</version>
+  <description>The app_move_pick package</description>
+
+  <maintainer email="1125290220@qq.com">Kunlin Xu</maintainer>
+
+  <license>BSD</license>
+
+  <author email="1125290220@qq.com">Kunlin Xu</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>vision_bridge</build_depend>
+  <build_depend>pick_place_bridge</build_depend>
+  <build_depend>hirop_msgs</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>vision_bridge</exec_depend>
+  <exec_depend>pick_place_bridge</exec_depend>
+  <exec_depend>hirop_msgs</exec_depend>
+
+  <export>
+
+  </export>
+</package>
