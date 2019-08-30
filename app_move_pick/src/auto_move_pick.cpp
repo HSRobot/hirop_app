@@ -6,6 +6,8 @@
 #include <hirop_msgs/Look.h>
 #include <hirop_msgs/CleanPCL.h>
 
+#include <tf/transform_listener.h>
+
 using namespace hirop_app;
 
 AutoMovePickApp::AutoMovePickApp(){
@@ -14,19 +16,13 @@ AutoMovePickApp::AutoMovePickApp(){
 
     currentMap = "map1";
 
+    initMoveit();
+
     _detectionClinet = _n.serviceClient<vision_bridge::detection>("detection");
     _pickClient = _n.serviceClient<pick_place_bridge::ros_pick_run>("pick_excute");
     _setPoseClient = _n.serviceClient<pick_place_bridge::set_pick>("set_pick_pose");
     _lookClient =  _n.serviceClient<hirop_msgs::Look>("look");
     _cleanPclClient =  _n.serviceClient<hirop_msgs::CleanPCL>("clean_pcl");
-
-//    std::cout << "waiting detection server ... " << std::endl;
-
-//    if(_detectionClinet.waitForExistence(ros::Duration(5))){
-//        std::cout << "detection server was ready ^_^ " << std::endl;
-//    }else{
-//        std::cout << "detection server has some worry ready -.-" << std::endl;
-//    }
 
     _objectSub = _n.subscribe("/object_array", 1, &AutoMovePickApp::detectionResCallback, this);
 }
@@ -39,6 +35,8 @@ int AutoMovePickApp::detection(std::string object){
     detection_srv.request.detectorName = "Yolo6dDetector";
     detection_srv.request.detectorType = 1;
     detection_srv.request.detectorConfig = "";
+
+    armMoveTo("detection");
 
     bool ret;
     ret = _detectionClinet.call(detection_srv);
@@ -79,6 +77,8 @@ int AutoMovePickApp::moveto(std::string flag){
 
     delete data;
     delete motion;
+
+    return 0;
 }
 
 void AutoMovePickApp::detectionResCallback(const vision_bridge::ObjectArray::ConstPtr& msg){
@@ -87,10 +87,33 @@ void AutoMovePickApp::detectionResCallback(const vision_bridge::ObjectArray::Con
      */
     _objectCamPose = msg->objects[0].pose;
 
-    std::cout << "detection object :  x = " << _objectCamPose.pose.position.x << std::endl;
+    tf::TransformListener listener;
+
+    for(int i = 0; i < 10; i++){
+
+        try{
+            listener.waitForTransform("robot_base_link", _objectCamPose.header.frame_id, ros::Time(0), ros::Duration(1.0));
+            listener.transformPose("robot_base_link", _objectCamPose, worldPose);
+            break;
+        }catch (tf::TransformException &ex) {
+            /**
+         * @brief 获取变换关系失败，等待1秒后继续获取坐标变换
+         */
+            ROS_ERROR("%s",ex.what());
+            ros::Duration(1.0).sleep();
+            continue;
+        }
+
+    }
+
+    worldPose.pose.orientation.x = 0;
+    worldPose.pose.orientation.y = 0;
+    worldPose.pose.orientation.z = 0;
+    worldPose.pose.orientation.w = 1;
+
+    std::cout << "detection object :  x = " << worldPose.pose.position.x << std::endl;
 
     _haveObject = true;
-
 }
 
 PoseData* AutoMovePickApp::getMapFlagPose(std::string flag){
@@ -112,7 +135,7 @@ int AutoMovePickApp::pick(){
     bool ret;
 
     pick_place_bridge::set_pick objectPoseSrv;
-    objectPoseSrv.request.pickPos = _objectCamPose;
+    objectPoseSrv.request.pickPos = worldPose;
 
     /**
      *  设置抓取目标的位姿
@@ -126,6 +149,8 @@ int AutoMovePickApp::pick(){
 
     pick_place_bridge::ros_pick_run pickSrv;
     ret = _pickClient.call(pickSrv);
+
+    armMoveTo("pick");
 
     if( !pickSrv.response.isPickFinsh || !ret){
         std::cout << "pick object error" << std::endl;
@@ -160,6 +185,35 @@ int AutoMovePickApp::cleanPcl(){
         std::cout << "clean pcl error" << std::endl;
         return -1;
     }
+
+    return 0;
+}
+
+int AutoMovePickApp::armMoveTo(std::string name){
+
+    MoveItErrorCode result;
+    for(int i = 0; i < 2; i++){
+        _move_group->setNamedTarget(name);
+        result = _move_group->move();
+
+        if(result == MoveItErrorCode::SUCCESS){
+            return 0;
+        }
+        std::cout << "ARM Move error" << std::endl;
+    }
+
+    if(result != MoveItErrorCode::SUCCESS)
+        return -1;
+
+    return 0;
+}
+
+int AutoMovePickApp::initMoveit(){
+
+    _move_group = new MoveGroupInterface("arm");
+    _move_group->setPoseReferenceFrame("robot_base_link");
+    _move_group->setPlannerId("RRTConnect");
+    _move_group->setPlanningTime(3);
 
     return 0;
 }

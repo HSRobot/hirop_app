@@ -11,8 +11,14 @@
 #include <vision_bridge/detection.h>
 #include <vision_bridge/ObjectArray.h>
 
+
+using namespace std;
+
+#include <moveit/move_group_interface/move_group.h>
+
 using namespace hirop::data_manager;
 using namespace hirop::navigation;
+using namespace moveit::planning_interface;
 
 namespace hirop_app{
 
@@ -57,6 +63,8 @@ public:
      */
     int cleanPcl();
 
+    int armMoveTo(std::string name);
+
 private:
 
     /**
@@ -71,6 +79,12 @@ private:
      * @param msg                   识别结果
      */
     void detectionResCallback(const vision_bridge::ObjectArray::ConstPtr& msg);
+
+    /**
+     * @brief initMoveit
+     * @return  0 success -1 error
+     */
+    int initMoveit();
 
 private:
 
@@ -123,6 +137,13 @@ private:
      * @brief _haveObject   标志当前是否有物体已经被识别到
      */
     bool _haveObject;
+
+    /**
+     * @brief _worldPose    save the world pose
+     */
+    geometry_msgs::PoseStamped worldPose;
+
+    MoveGroupInterface *_move_group;
 };
 
 }

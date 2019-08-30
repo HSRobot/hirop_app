@@ -1,18 +1,24 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(app_move_pick)
 
+add_compile_options(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   vision_bridge
   pick_place_bridge
   hirop_msgs
+  tf
+  moveit_core
+  moveit_ros_planning_interface
 )
 
 find_package(hirop_datamanager REQUIRED)
 #find_package(hirop_nav REQUIRED)
 
 catkin_package(
- CATKIN_DEPENDS roscpp vision_bridge pick_place_bridge hirop_msgs
+ CATKIN_DEPENDS roscpp vision_bridge pick_place_bridge hirop_msgs tf
+ moveit_core moveit_ros_planning_interface
 )
 
 
