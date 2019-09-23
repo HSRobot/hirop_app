@@ -62,7 +62,8 @@ int main(int argc, char *argv[]){
         std::cout << "3，构建点云" << std::endl;
         std::cout << "4，清除点云" << std::endl;
         std::cout << "5，抓取目标" << std::endl;
-        std::cout << "6，退出" << std::endl;
+        std::cout << "6，放置目标" << std::endl;
+        std::cout << "7，退出" << std::endl;
 
 
         std::cin >> model;
@@ -92,6 +93,10 @@ int main(int argc, char *argv[]){
             break;
 
         case 6:
+            app.place();
+            break;
+
+        case 7:
             return 0;
             break;
 
@@ -102,7 +107,7 @@ int main(int argc, char *argv[]){
             if(app.detection("Yolo6dDetector"))
                 break;
 
-            sleep(1);
+            sleep(0.5);
 
             if(app.look())
                 break;
@@ -112,6 +117,16 @@ int main(int argc, char *argv[]){
 
             if(app.moveto("home"))
                 break;
+
+            if(app.armMoveTo("detection"))
+                break;
+
+            if(app.clearOctomap())
+                break;
+
+            if(app.clearOctomap())
+                break;
+
             break;
         }
     }

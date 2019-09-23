@@ -11,14 +11,20 @@
 #include <vision_bridge/detection.h>
 #include <vision_bridge/ObjectArray.h>
 
+#include <moveit/move_group_interface/move_group_interface.h>
 
 using namespace std;
-
-#include <moveit/move_group_interface/move_group.h>
-
 using namespace hirop::data_manager;
 using namespace hirop::navigation;
 using namespace moveit::planning_interface;
+
+#define Y_SHIFTING 0.1
+#define X_SHIFTING 0.1
+
+/**
+ *  ROW 表示一行有多少个物体
+ */
+#define ROW 4
 
 namespace hirop_app{
 
@@ -52,6 +58,12 @@ public:
     int pick();
 
     /**
+     * @brief place 执行放置动作，每次都会更新放置的位置
+     * @return      0 放置成功 -1 放置失败
+     */
+    int place();
+
+    /**
      * @brief look  观察一次周围环境
      * @return      0 正常观察 -1 观察出错
      */
@@ -63,7 +75,18 @@ public:
      */
     int cleanPcl();
 
+    /**
+     * @brief armMoveTo
+     * @param name
+     * @return
+     */
     int armMoveTo(std::string name);
+
+    /**
+     * @brief clearOctomap
+     * @return
+     */
+    int clearOctomap();
 
 private:
 
@@ -85,6 +108,11 @@ private:
      * @return  0 success -1 error
      */
     int initMoveit();
+
+    /**
+     * @brief initPlace     初始化放置相关的参数
+     */
+    void initPlace();
 
 private:
 
@@ -109,9 +137,24 @@ private:
     ros::ServiceClient _pickClient;
 
     /**
+     * @brief _placeClient  放置服务的客户端
+     */
+    ros::ServiceClient _placeClient;
+
+    /**
      * @brief _setPoseClient  设置目标位姿的客户端
      */
     ros::ServiceClient _setPoseClient;
+
+    /**
+     * @brief _setPoseClient  设置放置位姿的客户端
+     */
+    ros::ServiceClient _setPlacePoseClient;
+
+    /**
+     * @brief _clearOctomapClient   clear movit octomap client
+     */
+    ros::ServiceClient _clearOctomapClient;
 
     /**
      * @brief _lookClient  感知模块的客户端
@@ -143,7 +186,20 @@ private:
      */
     geometry_msgs::PoseStamped worldPose;
 
+    /**
+     * @brief _placePose     保存放置的初始位姿
+     */
+    geometry_msgs::PoseStamped _placePose;
+
+    /**
+     * @brief _move_group   moevit的接口
+     */
     MoveGroupInterface *_move_group;
+
+    /**
+     * @brief _placeCount    放置的计数
+     */
+    int _placeCount;
 };
 
 }
