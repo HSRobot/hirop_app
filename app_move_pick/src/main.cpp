@@ -63,7 +63,8 @@ int main(int argc, char *argv[]){
         std::cout << "4，清除点云" << std::endl;
         std::cout << "5，抓取目标" << std::endl;
         std::cout << "6，放置目标" << std::endl;
-        std::cout << "7，退出" << std::endl;
+        std::cout << "7，执行连续抓取" << std::endl;
+        std::cout << "8，退出" << std::endl;
 
 
         std::cin >> model;
@@ -97,6 +98,33 @@ int main(int argc, char *argv[]){
             break;
 
         case 7:
+
+            while(!app.detection("Yolo6dDetector")){
+
+                if(app.look())
+                    break;
+
+                if(app.pick())
+                    break;
+
+                if(app.moveto("pick"))
+                    break;
+
+                if(app.place())
+                    break;
+
+                if(app.armMoveTo("detection"))
+                    break;
+
+                if(app.clearOctomap())
+                    break;
+
+                if(app.cleanPcl())
+                    break;
+            }
+            break;
+
+        case 8:
             return 0;
             break;
 

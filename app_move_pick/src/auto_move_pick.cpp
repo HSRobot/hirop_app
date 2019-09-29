@@ -118,6 +118,8 @@ void AutoMovePickApp::detectionResCallback(const vision_bridge::ObjectArray::Con
     }
 
     std::cout << "detection object :  x = " << worldPose.pose.position.x << std::endl;
+    std::cout << "detection object :  y = " << worldPose.pose.position.x << std::endl;
+    std::cout << "detection object :  z = " << worldPose.pose.position.x << std::endl;
 
     _haveObject = true;
 }
